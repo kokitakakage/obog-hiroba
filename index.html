@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TABIPPO学生支部 OBOGひろば</title>
+<meta name="description" content="卒業しても、旅の仲間でいよう。TABIPPO学生支部のOBOGと現役がまたつながる場所です。">
+<meta property="og:title" content="TABIPPO学生支部 OBOGひろば">
+<meta property="og:description" content="卒業しても、旅の仲間でいよう。TABIPPO学生支部のOBOGと現役がまたつながる場所です。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --bg: #fbf8f3;
+  --surface: #ffffff;
+  --surface-2: #f3ede3;
+  --text: #2b2622;
+  --muted: #6f665d;
+  --line: #e4dccf;
+  --accent: #e2572b;
+  --accent-soft: #fde6dc;
+  --sea: #1f7a8c;
+  --sea-soft: #dcf0f3;
+  --ok: #2f7d4f;
+  --ok-soft: #e0f2e6;
+  --shadow: 0 1px 2px rgba(43,38,34,.06), 0 4px 16px rgba(43,38,34,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1916;
+    --surface: #24211d;
+    --surface-2: #2d2924;
+    --text: #f1ece5;
+    --muted: #b3a99d;
+    --line: #3c3730;
+    --accent: #ff7a50;
+    --accent-soft: #3d2519;
+    --sea: #5cc0d2;
+    --sea-soft: #173238;
+    --ok: #6fcf95;
+    --ok-soft: #1a3324;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1916;
+  --surface: #24211d;
+  --surface-2: #2d2924;
+  --text: #f1ece5;
+  --muted: #b3a99d;
+  --line: #3c3730;
+  --accent: #ff7a50;
+  --accent-soft: #3d2519;
+  --sea: #5cc0d2;
+  --sea-soft: #173238;
+  --ok: #6fcf95;
+  --ok-soft: #1a3324;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Zen Kaku Gothic New", system-ui, sans-serif;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: "Zen Maru Gothic", "Zen Kaku Gothic New", sans-serif; line-height: 1.4; margin: 0; }
+a { color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+.notice {
+  background: var(--sea-soft);
+  color: var(--sea);
+  font-size: 13px;
+  text-align: center;
+  padding: 6px 16px;
+}
+
+header.site {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.logo { font-family: "Zen Maru Gothic", sans-serif; font-weight: 700; font-size: 17px; text-decoration: none; white-space: nowrap; }
+.logo span { color: var(--accent); }
+nav.main { display: flex; gap: 20px; font-size: 14px; }
+nav.main a { text-decoration: none; color: var(--muted); }
+nav.main a:hover { color: var(--text); }
+@media (max-width: 760px) { nav.main { display: none; } }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 11px 22px; border-radius: 999px;
+  font-weight: 700; font-size: 15px; text-decoration: none;
+  border: 1.5px solid transparent; cursor: pointer;
+  font-family: inherit; white-space: nowrap;
+}
+@media (max-width: 420px) { .logo { font-size: 14px; } header.site .btn-sm { padding: 7px 12px; font-size: 12px; } }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-ghost { border-color: var(--line); background: var(--surface); color: var(--text); }
+.btn-ghost:hover { border-color: var(--muted); }
+.btn-sm { padding: 7px 16px; font-size: 13px; }
+
+.hero { padding: 72px 0 56px; }
+.hero .eyebrow { color: var(--accent); font-weight: 700; font-size: 14px; letter-spacing: .08em; }
+.hero h1 { font-size: clamp(30px, 6vw, 52px); margin: 10px 0 18px; }
+.hero p.lead { font-size: 17px; color: var(--muted); max-width: 640px; margin: 0 0 28px; }
+.hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-stats { display: flex; gap: 32px; margin-top: 40px; flex-wrap: wrap; }
+.hero-stats div b { display: block; font-family: "Zen Maru Gothic", sans-serif; font-size: 28px; }
+.hero-stats div span { font-size: 13px; color: var(--muted); }
+
+section.block { padding: 56px 0; border-top: 1px solid var(--line); }
+.sec-head { margin-bottom: 28px; }
+.sec-head .tag { color: var(--accent); font-weight: 700; font-size: 13px; letter-spacing: .08em; }
+.sec-head h2 { font-size: clamp(24px, 4vw, 32px); margin-top: 4px; }
+.sec-head p { color: var(--muted); margin: 8px 0 0; max-width: 680px; }
+
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 760px) { .three { grid-template-columns: 1fr; } }
+.pillar { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.pillar .num { font-family: "Zen Maru Gothic", sans-serif; color: var(--accent); font-weight: 700; }
+.pillar h3 { font-size: 19px; margin: 4px 0 6px; }
+.pillar p { margin: 0; color: var(--muted); font-size: 14px; }
+
+/* 名簿 */
+.filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; align-items: center; }
+.filters input[type="search"], .filters select {
+  font: inherit; font-size: 14px;
+  padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+}
+.filters input[type="search"] { flex: 1 1 220px; min-width: 0; }
+.filters label.check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); cursor: pointer; }
+.count { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.person {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 18px; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: var(--shadow);
+}
+.person .top { display: flex; gap: 12px; align-items: center; }
+.avatar {
+  width: 46px; height: 46px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  font-family: "Zen Maru Gothic", sans-serif; font-weight: 700; font-size: 18px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.person:nth-child(3n+2) .avatar { background: var(--sea-soft); color: var(--sea); }
+.person:nth-child(3n) .avatar { background: var(--ok-soft); color: var(--ok); }
+.person .name { font-weight: 700; font-size: 16px; }
+.person .meta { font-size: 12.5px; color: var(--muted); }
+.person .now { font-size: 14px; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.badge-ok { font-size: 12px; color: var(--ok); background: var(--ok-soft); padding: 2px 10px; border-radius: 999px; align-self: flex-start; }
+.empty { color: var(--muted); padding: 24px 0; display: none; }
+
+/* インタビュー */
+.articles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 860px) { .articles { grid-template-columns: 1fr; } }
+.article { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.article .cover { height: 140px; display: grid; place-items: center; font-size: 13px; color: var(--muted); background: linear-gradient(135deg, var(--accent-soft), var(--sea-soft)); }
+.article .body { padding: 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.article .kind { font-size: 12px; font-weight: 700; color: var(--sea); }
+.article h3 { font-size: 17px; }
+.article p { margin: 0; font-size: 14px; color: var(--muted); }
+.article .who { font-size: 13px; color: var(--muted); margin-top: auto; }
+.article a.read { font-size: 14px; font-weight: 700; color: var(--accent); text-decoration: none; }
+
+/* 現役 */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.panel h3 { font-size: 18px; margin-bottom: 10px; }
+.panel ul { margin: 0; padding-left: 1.2em; }
+.panel li { margin: 6px 0; }
+.quote { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; margin: 14px 0 0; color: var(--muted); font-size: 14px; }
+
+/* イベント */
+.events { display: grid; gap: 12px; }
+.event { display: grid; grid-template-columns: 110px 1fr auto; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.event .when { font-family: "Zen Maru Gothic", sans-serif; font-weight: 700; color: var(--sea); font-size: 14px; }
+.event h3 { font-size: 16px; }
+.event p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.event .type { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.event.big { border-color: var(--accent); background: var(--accent-soft); }
+@media (max-width: 640px) { .event { grid-template-columns: 1fr; gap: 4px; } }
+
+/* 参加 */
+.join { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 32px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center; }
+@media (max-width: 760px) { .join { grid-template-columns: 1fr; padding: 22px; } }
+.join h2 { font-size: 26px; margin-bottom: 8px; }
+.join p { color: var(--muted); margin: 0 0 18px; }
+.levels { display: grid; gap: 10px; }
+.level { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.level b { display: block; font-size: 14px; margin-bottom: 2px; }
+.level span { color: var(--muted); }
+
+/* ニュース */
+.news-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 860px) { .news-layout { grid-template-columns: 1fr; } }
+.news-list { display: grid; gap: 12px; }
+.news-item { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 4px; }
+.news-item.has-photo { grid-template-columns: 120px 1fr; column-gap: 16px; }
+.news-item .photo { grid-row: span 4; border-radius: 10px; background: center/cover var(--surface-2); min-height: 90px; }
+.news-item .date { font-size: 12.5px; color: var(--sea); font-weight: 700; }
+.news-item h3 { font-size: 16px; }
+.news-item p { margin: 0; font-size: 14px; color: var(--muted); }
+.news-item .by { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 560px) { .news-item.has-photo { grid-template-columns: 1fr; } .news-item .photo { grid-row: auto; min-height: 140px; } }
+
+/* 名簿の相談ボタン・イベントの状態 */
+.consult-link { font-size: 13px; font-weight: 700; color: var(--accent); text-decoration: none; }
+.consult-note { font-size: 13px; color: var(--muted); margin: -8px 0 16px; }
+.event .side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.status { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--sea-soft); color: var(--sea); white-space: nowrap; }
+.status.done { background: var(--surface-2); color: var(--muted); }
+.event a.apply { font-size: 13px; font-weight: 700; color: var(--accent); text-decoration: none; white-space: nowrap; }
+@media (max-width: 640px) { .event .side { flex-direction: row; align-items: center; } }
+
+/* 応援 */
+.plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.plan.wide { grid-column: span 2; }
+@media (max-width: 860px) { .plans { grid-template-columns: 1fr; } .plan.wide { grid-column: auto; } }
+.plan .honor { align-self: flex-start; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: #f6e7b8; color: #7a5b00; }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .options { grid-template-columns: 1fr; } }
+.options .highlight b::before { content: attr(data-mark); display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 6px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; }
+.supporters { display: flex; flex-wrap: wrap; gap: 8px; }
+.supporter { background: var(--surface-2); border-radius: 999px; padding: 4px 12px; font-size: 13.5px; }
+.supporter.honor { background: #f6e7b8; color: #5c4400; font-weight: 700; }
+.supporter.honor::before { content: "名誉隊員 "; font-size: 11px; }
+
+/* 旅マップ */
+#travelMap { height: 420px; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; z-index: 0; }
+@media (max-width: 560px) { #travelMap { height: 320px; } }
+.map-pop { font-family: "Zen Kaku Gothic New", system-ui, sans-serif; max-width: 220px; }
+.map-pop b { display: block; font-size: 14px; }
+.map-pop img { display: block; width: 100%; border-radius: 8px; margin: 6px 0; }
+.map-pop p { margin: 4px 0 0; font-size: 12.5px; }
+.map-pop .by { color: #6f665d; font-size: 12px; margin-top: 4px; }
+.map-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: var(--muted); }
+
+/* 名簿の追加項目 */
+.person .extra { font-size: 12.5px; color: var(--muted); display: grid; gap: 2px; }
+.person .contact a { color: var(--sea); font-weight: 700; text-decoration: none; word-break: break-all; }
+.kubun { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--sea-soft); color: var(--sea); margin-left: 6px; vertical-align: 2px; }
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.plan.featured { border: 2px solid var(--accent); }
+.plan .plan-name { font-size: 13px; font-weight: 700; color: var(--accent); }
+.plan .price { font-family: "Zen Maru Gothic", sans-serif; font-size: 26px; font-weight: 700; line-height: 1.2; }
+.plan .price small { font-size: 14px; color: var(--muted); font-weight: 500; }
+.plan .highlight { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; }
+.plan .highlight b { display: block; font-size: 14px; margin-bottom: 2px; }
+.plan ul { margin: 0; padding-left: 1.1em; font-size: 13.5px; color: var(--muted); }
+.plan li { margin: 3px 0; }
+.support-sub { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-top: 18px; }
+@media (max-width: 760px) { .support-sub { grid-template-columns: 1fr; } }
+.flow { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 10px; }
+.flow li { counter-increment: step; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; font-size: 14px; }
+.flow li::before { content: counter(step); width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 13px; }
+.flow li span { color: var(--muted); display: block; font-size: 13px; }
+.support-note { font-size: 13.5px; color: var(--muted); margin: 14px 0 0; }
+
+footer { padding: 40px 0 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="#top">TABIPPO学生支部 <span>OBOGひろば</span></a>
+    <nav class="main">
+      <a href="#directory">いま何してる名簿</a>
+      <a href="#interviews">インタビュー</a>
+      <a href="#students">学生支部ニュース</a>
+      <a href="#events">イベント</a>
+      <a href="#map">旅マップ</a>
+      <a href="#support">応援する</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#join">参加する（無料）</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">TABIPPO学生支部 OBOGコミュニティ</div>
+      <h1>卒業しても、<br>旅の仲間でいよう。</h1>
+      <p class="lead">一緒に1年を走り抜けた仲間が、今どこで何をしているのか。OBOG同士、そして現役生とまたつながれる場所をつくりました。</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#join">無料で参加する</a>
+        <a class="btn btn-ghost" href="#directory">名簿をのぞいてみる</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>10年</b><span>続いてきたコミュニティ</span></div>
+        <div><b>3支部</b><span>東京・大阪・福岡</span></div>
+        <div><b id="memberCount">–</b><span>名簿に掲載中</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="tag">ABOUT</div>
+        <h2>このひろばでできること</h2>
+      </div>
+      <div class="three">
+        <div class="pillar">
+          <div class="num">01</div>
+          <h3>知る</h3>
+          <p>「いま何してる名簿」とインタビュー記事で、OBOGと現役の今がわかります。</p>
+        </div>
+        <div class="pillar">
+          <div class="num">02</div>
+          <h3>つながる</h3>
+          <p>気になる先輩に話を聞いたり、同じ業界・同じ地域のOBOGと集まったりできます。</p>
+        </div>
+        <div class="pillar">
+          <div class="num">03</div>
+          <h3>応援する</h3>
+          <p>現役の挑戦をのぞいて、応援したくなったら気持ちを届けられます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="directory">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="tag">DIRECTORY</div>
+        <h2>いま何してる名簿</h2>
+        <p>参加アンケートに答えてくれた人が載っています。どこまで公開するかは本人が選べます。</p>
+      </div>
+      <p class="consult-note">話を聞いてみたい人がいたら、運営からご本人に確認してからおつなぎします。直接の連絡先は載せていません。</p>
+      <div class="filters">
+        <input type="search" id="q" placeholder="名前・業界・相談できることで探す">
+        <select id="branch">
+          <option value="">すべての支部</option>
+          <option>東京支部</option>
+          <option>大阪支部</option>
+          <option>福岡支部</option>
+        </select>
+        <select id="industry"><option value="">すべての業界</option></select>
+        <label class="check"><input type="checkbox" id="okOnly"> 現役からの相談OKだけ</label>
+      </div>
+      <div class="count" id="count"></div>
+      <div class="grid" id="people"></div>
+      <div class="empty" id="empty">条件に合う人が見つかりませんでした。</div>
+    </div>
+  </section>
+
+  <section class="block" id="interviews">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="tag">INTERVIEW</div>
+        <h2>あの人は、いま</h2>
+        <p>現役生がインタビュアーになって、OBOGの今を聞きに行きます。記事の本文はnoteで公開します。</p>
+      </div>
+      <div class="articles" id="articles"></div>
+      <div class="empty" id="articlesEmpty"></div>
+    </div>
+  </section>
+
+  <section class="block" id="students">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="tag">NEWS</div>
+        <h2>学生支部ニュース</h2>
+        <p>現役とOBOGの近況です。東京・大阪・福岡の3支部で、旅の魅力を伝えるイベントを企画しています。</p>
+      </div>
+      <div class="news-layout">
+        <div>
+          <div class="news-list" id="newsList"></div>
+          <div class="empty" id="newsEmpty"></div>
+        </div>
+        <div class="panel">
+          <h3>OBOGのみなさんにお願いしたいこと</h3>
+          <ul>
+            <li>就活や進路の相談に、30分だけ乗ってほしい</li>
+            <li>支部のイベントに、ふらっと遊びに来てほしい</li>
+            <li>今の仕事の現場を、少しだけ見せてほしい</li>
+            <li>記事をシェアして、同じ代の人に届けてほしい</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="events">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="tag">EVENTS</div>
+        <h2>集まる機会</h2>
+        <p>年に1回の大きな再会と、気軽に参加できるオンラインの集まりがあります。</p>
+      </div>
+      <div class="events" id="eventList"></div>
+      <div class="empty" id="eventsEmpty"></div>
+    </div>
+  </section>
+
+  <section class="block" id="map">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="tag">TRAVEL MAP</div>
+        <h2>みんなの旅マップ</h2>
+        <p>OBOG・現役・応援してくれたみなさんの「思い出の旅先」や「いまいる場所」を、写真とひとことで地図に残していきます。ピンを押すと投稿が見られます。</p>
+      </div>
+      <div id="travelMap"></div>
+      <div class="empty" id="mapEmpty"></div>
+      <div class="map-actions">
+        <span id="mapCount"></span>
+        <a class="btn btn-ghost btn-sm" id="mapButton" href="#">旅の思い出を投稿する</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="join">
+    <div class="wrap">
+      <div class="join">
+        <div>
+          <h2>参加は無料です</h2>
+          <p>かんたんなアンケートに答えると、OBOGひろばに参加できます。名簿にどこまで載せるかも、ここで選べます。</p>
+          <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="btn btn-primary" id="joinButtonOther" href="#">OBOG・応援してくださる方</a>
+            <a class="btn btn-ghost" id="joinButtonStudent" href="#">学生支部の現役メンバー</a>
+          </div>
+          <p class="support-note">OBOG・応援してくださる方は、学生支部の現役かOBOGからの紹介でご参加ください。なりすましを防ぐため、紹介者に確認してから名簿に載せます。</p>
+        </div>
+        <div class="levels">
+          <div class="level"><b>サイトに公開する</b><span>名前、代・支部、業界、いましていること、相談に乗れること、住んでいる地域（公開してよい項目だけを選べます）</span></div>
+          <div class="level"><b>公開しない</b><span>連絡先（運営からの連絡だけに使います）</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="support">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="tag">SUPPORT</div>
+        <h2>学生支部を応援する</h2>
+        <p>OBOGひろばへの参加は無料です。そのうえで、現役の挑戦を応援したいと思ってくださった方へ。学生の団体なので、お返しにお金はかけず、旅の楽しさで返します。</p>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <div class="plan-name">旅の仲間</div>
+          <div class="price">3,000<small>円</small></div>
+          <ul>
+            <li>現役からのお礼メッセージ</li>
+            <li>活動報告をお届け</li>
+            <li>サイトの応援者一覧にお名前（希望者のみ・ニックネーム可）</li>
+          </ul>
+        </div>
+        <div class="plan">
+          <div class="plan-name">旅の相棒</div>
+          <div class="price">5,000<small>円</small></div>
+          <div class="highlight"><b>BPFのロビーにお名前を掲載</b>LINEスタンプもプレゼントします。</div>
+          <ul><li>「旅の仲間」のお返しもすべて</li></ul>
+        </div>
+        <div class="plan featured">
+          <div class="plan-name">旅の恩人</div>
+          <div class="price">10,000<small>円</small></div>
+          <span class="honor">名誉隊員</span>
+          <div class="highlight"><b>BPFにご招待</b>オンライン活動報告会にもご招待します。</div>
+          <ul><li>「旅の相棒」のお返しもすべて</li></ul>
+        </div>
+        <div class="plan wide">
+          <div class="plan-name">特別応援</div>
+          <div class="price">30,000<small>円〜</small></div>
+          <span class="honor">名誉隊員</span>
+          <p class="support-note" style="margin:0">「旅の恩人」のお返しすべてに加えて、どちらか1つを選べます。</p>
+          <div class="options">
+            <div class="highlight"><b data-mark="A">選べるインタビュー</b>旅ラジオ・noteの記事・定例ミーティングへの参加から選んで、あなたの活動を紹介します。</div>
+            <div class="highlight"><b data-mark="B">オフライン交流会に無料でご招待</b>現役やOBOGと直接会える交流会に、無料でお越しいただけます。</div>
+          </div>
+        </div>
+        <div class="plan">
+          <div class="plan-name">企業さま向け</div>
+          <div class="price">50,000<small>円</small></div>
+          <span class="honor">名誉隊員</span>
+          <div class="highlight"><b>企業説明会や宣伝の機会</b>学生支部のメンバーに向けて、会社のことをお話しいただけます。</div>
+          <ul><li>「旅の恩人」のお返しもすべて</li></ul>
+        </div>
+      </div>
+      <p class="support-note">金額を自由に決めて応援していただくこともできます。「旅の恩人」以上の方には「名誉隊員」の称号をお贈りし、応援者一覧でもお名前の横に表示します。</p>
+      <div class="support-sub">
+        <div class="panel">
+          <h3>応援の流れ</h3>
+          <ol class="flow">
+            <li><div>プランを選ぶ</div></li>
+            <li><div>振り込む<span>振込先は準備中です</span></div></li>
+            <li><div>「応援しました」フォームで知らせる<span>お名前の載せ方や、お返しの受け取り方をうかがいます</span></div></li>
+            <li><div>お返しと活動報告が届く</div></li>
+          </ol>
+          <a class="btn btn-primary" id="supportButton" href="#" style="margin-top:16px">応援しましたフォーム</a>
+        </div>
+        <div class="panel">
+          <h3>応援金の使いみち</h3>
+          <ul>
+            <li>支部のイベントの会場費</li>
+            <li>OBOGインタビューの取材にかかる費用</li>
+            <li>OBOGひろばの運営</li>
+          </ul>
+          <p class="support-note">応援してくださった方には、活動報告で「おかげでこうなりました」を必ずお届けします。</p>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h3>応援してくれたみなさん</h3>
+        <div class="supporters" id="supporters"></div>
+        <div class="empty" id="supportersEmpty"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>TABIPPO学生支部 OBOGひろば</div>
+    <div>運営：TABIPPO学生支部 ビジネス開発チーム（担当：福岡支部 鷹影昂生）</div>
+  </div>
+</footer>
+
+<script>
+// ===== 設定（ここだけ書き換える） =====
+const CONFIG = {
+  // 「OBOGひろば サイトデータ」スプレッドシートのID（URLの /d/ と /edit の間）
+  SHEET_ID: "1Qyyp-SJ0ljqbGYIPwEwu70WnVFobrY16NeWEQ1J0YT8",
+  // 参加アンケート（Googleフォーム）のURL。空のあいだはボタンが「準備中」になる
+  FORM_URL_OTHER: "",    // OBOG・応援してくださる方など（みなさん共通）
+  FORM_URL_STUDENT: "",  // 学生支部の現役メンバー専用
+  // 「この人に話を聞きたい」を運営に送るフォームのURL。空のあいだは名簿にボタンが出ない
+  CONSULT_FORM_URL: "",
+  // 「応援しました」を知らせるフォームのURL。空のあいだはボタンが「準備中」になる
+  SUPPORT_FORM_URL: "",
+  // 旅マップに投稿するフォームのURL。空のあいだはボタンが「準備中」になる
+  MAP_FORM_URL: ""
+};
+
+// 「旅の恩人」以上は名誉隊員
+const HONOR_PLANS = ["旅の恩人", "特別応援", "企業さま向け"];
+
+// URLの末尾に ?demo をつけると、スプシを読まずに見本データで表示する
+const SAMPLE = {
+  "公開名簿": [
+    { "名前": "鷹影 昂生", "代（年度）": "2025年度〜（現役）", "支部": "福岡支部", "業界": "飲食", "いましていること": "大学を休学して、ガーナの飲食店スタートアップでインターンをしています", "相談に乗れること": "休学、海外インターン、アフリカ", "現役からの相談": "OK", "住んでいる地域": "海外（ガーナ）", "区分": "現役", "学校名": "立命館アジア太平洋大学（休学中）", "会社名": "", "連絡先（SNS・メールなど）": "" },
+    { "名前": "旅野 さくら（例）", "代（年度）": "2019年度", "支部": "東京支部", "業界": "IT・Web", "いましていること": "Web制作会社でディレクターをしています", "相談に乗れること": "就活、IT業界", "現役からの相談": "OK", "住んでいる地域": "東京都", "区分": "OBOG", "連絡先（SNS・メールなど）": "@tabino_sakura_example" },
+    { "名前": "北浜 ゆうと（例）", "代（年度）": "2018年度", "支部": "大阪支部", "業界": "旅行・観光", "いましていること": "旅行会社で地域ツアーを企画しています", "相談に乗れること": "観光業、地方創生", "現役からの相談": "OK", "住んでいる地域": "大阪府" },
+    { "名前": "海野 みなみ（例）", "代（年度）": "2021年度", "支部": "福岡支部", "業界": "教育", "いましていること": "高校で英語を教えています", "相談に乗れること": "留学、教員", "現役からの相談": "要相談", "住んでいる地域": "福岡県" }
+  ],
+  "記事": [
+    { "種類": "OBOGインタビュー", "タイトル": "支部で覚えた「人を巻き込む力」が、今の仕事の土台になった（例）", "紹介文": "旅行会社で地域ツアーを企画する北浜さん。", "名前・代・支部": "北浜 ゆうと／2018年度 大阪支部", "noteのURL": "", "写真のURL": "" }
+  ],
+  "イベント": [
+    { "いつ": "年1回", "イベント名": "OBOGホームカミング", "説明": "全支部・全世代が集まる再会の日。", "形式": "オフライン", "目立たせる": "〇", "状態": "日程調整中", "申込のURL": "" },
+    { "いつ": "12/10", "イベント名": "業界別トーク", "説明": "同じ業界のOBOGと現役で、30分だけ話す会。", "形式": "オンライン", "目立たせる": "", "状態": "開催予定", "申込のURL": "https://example.com/" }
+  ],
+  "ニュース": [
+    { "日付": "2026/11/04", "タイトル": "ガーナから、福岡支部の活動に参加しています", "本文": "大学を休学してガーナでインターンをしながら、オンラインで学生支部の活動を続けています。", "書いた人": "鷹影 昂生（福岡支部）", "写真のURL": "", "掲載": "〇" },
+    { "日付": "2026/10/20", "タイトル": "新メンバー歓迎会をしました（例）", "本文": "東京支部で新メンバーの歓迎会を開きました。", "書いた人": "東京支部", "写真のURL": "", "掲載": "〇" },
+    { "日付": "2026/10/01", "タイトル": "載せない投稿（例）", "本文": "", "書いた人": "", "写真のURL": "", "掲載": "" }
+  ],
+  "旅マップ": [
+    { "場所": "ガーナ・アクラ", "緯度": "5.6037", "経度": "-0.187", "投稿した人": "鷹影 昂生（福岡支部）", "ひとこと": "インターンで暮らしている町。ジョロフライスがおいしいです。", "写真のURL": "", "日付": "2026/11/04", "掲載": "〇" },
+    { "場所": "京都・嵐山（例）", "緯度": "35.0094", "経度": "135.6668", "投稿した人": "北浜 ゆうと（例）", "ひとこと": "支部の合宿で行った思い出の場所。", "写真のURL": "", "日付": "2026/10/15", "掲載": "〇" }
+  ],
+  "応援者": [
+    { "表示する名前": "たびすき太郎（例）", "プラン": "旅の恩人", "表示": "〇" },
+    { "表示する名前": "さくら（例）", "プラン": "旅の相棒", "表示": "〇" }
+  ]
+};
+
+const $ = (id) => document.getElementById(id);
+
+// スプシの文字をそのままHTMLに入れないようにする
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function safeUrl(u) {
+  return /^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "";
+}
+
+function parseCsv(text) {
+  const rows = []; let row = [], cell = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') inQuotes = false;
+      else cell += c;
+    } else if (c === '"') inQuotes = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  const [head = [], ...body] = rows;
+  const keys = head.map(h => h.trim());
+  return body
+    .filter(r => r.some(v => v.trim() !== ""))
+    .map(r => Object.fromEntries(keys.map((k, i) => [k, (r[i] || "").trim()])));
+}
+
+async function loadTab(name) {
+  if (new URLSearchParams(location.search).has("demo")) return SAMPLE[name] || [];
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  if (text.trim().startsWith("<")) throw new Error("スプシが公開されていません");
+  return parseCsv(text);
+}
+
+const LOAD_ERROR = "読み込めませんでした。スプレッドシートの共有設定（リンクを知っている全員が閲覧可）を確認してください。";
+
+// ===== いま何してる名簿 =====
+let people = [];
+const consultUrl = safeUrl(CONFIG.CONSULT_FORM_URL);
+
+function toPerson(r) {
+  return {
+    name: r["名前"], year: r["代（年度）"], branch: r["支部"], industry: r["業界"],
+    area: r["住んでいる地域"] || "", now: r["いましていること"],
+    topics: (r["相談に乗れること"] || "").split(/[、,，・]/).map(t => t.trim()).filter(Boolean),
+    consult: r["現役からの相談"] || "",
+    kubun: r["区分"] || "", school: r["学校名"] || "", company: r["会社名"] || "",
+    contact: r["連絡先（SNS・メールなど）"] || ""
+  };
+}
+
+// 連絡先：@で始まればInstagram、メールアドレスはメール、URLはそのままリンクにする
+function contactHtml(c) {
+  const v = String(c || "").trim();
+  if (!v) return "";
+  if (/^@[A-Za-z0-9._]{1,30}$/.test(v)) return `<a href="https://www.instagram.com/${esc(v.slice(1))}/" target="_blank" rel="noopener">Instagram ${esc(v)}</a>`;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return `<a href="mailto:${esc(v)}">${esc(v)}</a>`;
+  if (safeUrl(v)) return `<a href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a>`;
+  return esc(v);
+}
+
+function render() {
+  const q = $("q").value.trim().toLowerCase();
+  const b = $("branch").value;
+  const ind = $("industry").value;
+  const okOnly = $("okOnly").checked;
+  const list = people.filter(p => {
+    if (b && p.branch !== b) return false;
+    if (ind && p.industry !== ind) return false;
+    if (okOnly && p.consult !== "OK") return false;
+    if (q) {
+      const hay = [p.name, p.industry, p.area, p.now, p.school, p.company, ...p.topics].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  $("people").innerHTML = list.map(p => `
+    <div class="person">
+      <div class="top">
+        <div class="avatar">${esc((p.name || "？").charAt(0))}</div>
+        <div>
+          <div class="name">${esc(p.name)}${p.kubun ? `<span class="kubun">${esc(p.kubun)}</span>` : ""}</div>
+          <div class="meta">${esc([p.year, p.branch].filter(Boolean).join(" "))}${p.area ? "・" + esc(p.area) : ""}</div>
+        </div>
+      </div>
+      ${p.now ? `<p class="now">${esc(p.now)}</p>` : ""}
+      ${p.school || p.company || p.contact ? `<div class="extra">
+        ${p.school ? `<div>学校：${esc(p.school)}</div>` : ""}
+        ${p.company ? `<div>会社：${esc(p.company)}</div>` : ""}
+        ${p.contact ? `<div class="contact">連絡先：${contactHtml(p.contact)}</div>` : ""}
+      </div>` : ""}
+      <div class="chips">${[p.industry, ...p.topics].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join("")}</div>
+      ${p.consult === "OK" ? '<span class="badge-ok">現役からの相談OK</span>' : ""}
+      ${consultUrl && p.consult && p.consult !== "今は難しい" ? `<a class="consult-link" href="${esc(consultUrl)}" target="_blank" rel="noopener">この人に話を聞きたい →</a>` : ""}
+    </div>`).join("");
+  $("count").textContent = `${list.length}人`;
+  $("empty").textContent = "条件に合う人が見つかりませんでした。";
+  $("empty").style.display = list.length ? "none" : "block";
+}
+
+async function initDirectory() {
+  try {
+    people = (await loadTab("公開名簿")).map(toPerson).filter(p => p.name);
+  } catch (e) {
+    console.error(e);
+    $("count").textContent = "";
+    $("empty").textContent = LOAD_ERROR;
+    $("empty").style.display = "block";
+    return;
+  }
+  $("memberCount").textContent = `${people.length}人`;
+  [...new Set(people.map(p => p.industry).filter(Boolean))].forEach(i => {
+    const o = document.createElement("option"); o.textContent = i; $("industry").appendChild(o);
+  });
+  ["q", "branch", "industry", "okOnly"].forEach(id => $(id).addEventListener("input", render));
+  render();
+}
+
+// ===== インタビュー記事 =====
+async function initArticles() {
+  let rows;
+  try { rows = (await loadTab("記事")).filter(r => r["タイトル"]); }
+  catch (e) { console.error(e); $("articlesEmpty").textContent = LOAD_ERROR; $("articlesEmpty").style.display = "block"; return; }
+  if (!rows.length) { $("articlesEmpty").textContent = "記事は準備中です。"; $("articlesEmpty").style.display = "block"; return; }
+  $("articles").innerHTML = rows.map(r => {
+    const note = safeUrl(r["noteのURL"]);
+    const photo = safeUrl(r["写真のURL"]);
+    return `
+    <article class="article">
+      <div class="cover"${photo ? ` style="background:url('${esc(photo)}') center/cover"` : ""}>${photo ? "" : "写真が入ります"}</div>
+      <div class="body">
+        <div class="kind">${esc(r["種類"])}</div>
+        <h3>${esc(r["タイトル"])}</h3>
+        ${r["紹介文"] ? `<p>${esc(r["紹介文"])}</p>` : ""}
+        <div class="who">${esc(r["名前・代・支部"])}</div>
+        ${note ? `<a class="read" href="${esc(note)}" target="_blank" rel="noopener">noteで読む →</a>` : `<span class="who">近日公開</span>`}
+      </div>
+    </article>`;
+  }).join("");
+}
+
+// ===== イベント =====
+async function initEvents() {
+  let rows;
+  try { rows = (await loadTab("イベント")).filter(r => r["イベント名"]); }
+  catch (e) { console.error(e); $("eventsEmpty").textContent = LOAD_ERROR; $("eventsEmpty").style.display = "block"; return; }
+  if (!rows.length) { $("eventsEmpty").textContent = "イベントは準備中です。"; $("eventsEmpty").style.display = "block"; return; }
+  $("eventList").innerHTML = rows.map(r => {
+    const status = r["状態"] || "";
+    const apply = safeUrl(r["申込のURL"]);
+    return `
+    <div class="event${/[〇○◯]/.test(r["目立たせる"] || "") ? " big" : ""}">
+      <div class="when">${esc(r["いつ"])}</div>
+      <div><h3>${esc(r["イベント名"])}</h3>${r["説明"] ? `<p>${esc(r["説明"])}</p>` : ""}</div>
+      <div class="side">
+        ${status ? `<span class="status${status === "終了" ? " done" : ""}">${esc(status)}</span>` : ""}
+        ${r["形式"] ? `<span class="type">${esc(r["形式"])}</span>` : ""}
+        ${apply && status !== "終了" ? `<a class="apply" href="${esc(apply)}" target="_blank" rel="noopener">申し込む →</a>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ===== 学生支部ニュース =====
+async function initNews() {
+  let rows;
+  try { rows = (await loadTab("ニュース")).filter(r => r["タイトル"] && /[〇○◯]/.test(r["掲載"] || "")); }
+  catch (e) { console.error(e); $("newsEmpty").textContent = LOAD_ERROR; $("newsEmpty").style.display = "block"; return; }
+  if (!rows.length) { $("newsEmpty").textContent = "ニュースは準備中です。"; $("newsEmpty").style.display = "block"; return; }
+  rows.sort((a, b) => String(b["日付"]).localeCompare(String(a["日付"])));
+  $("newsList").innerHTML = rows.map(r => {
+    const photo = safeUrl(r["写真のURL"]);
+    return `
+    <article class="news-item${photo ? " has-photo" : ""}">
+      ${photo ? `<div class="photo" style="background-image:url('${esc(photo)}')"></div>` : ""}
+      <div class="date">${esc(r["日付"])}</div>
+      <h3>${esc(r["タイトル"])}</h3>
+      ${r["本文"] ? `<p>${esc(r["本文"])}</p>` : ""}
+      ${r["書いた人"] ? `<div class="by">${esc(r["書いた人"])}</div>` : ""}
+    </article>`;
+  }).join("");
+}
+
+// ===== 応援してくれたみなさん =====
+async function initSupporters() {
+  let rows;
+  try { rows = (await loadTab("応援者")).filter(r => r["表示する名前"] && /[〇○◯]/.test(r["表示"] || "")); }
+  catch (e) { console.error(e); $("supportersEmpty").textContent = LOAD_ERROR; $("supportersEmpty").style.display = "block"; return; }
+  if (!rows.length) { $("supportersEmpty").textContent = "最初の応援をお待ちしています。"; $("supportersEmpty").style.display = "block"; return; }
+  // 名誉隊員を先に並べる
+  rows.sort((a, b) => HONOR_PLANS.includes(b["プラン"]) - HONOR_PLANS.includes(a["プラン"]));
+  $("supporters").innerHTML = rows.map(r =>
+    `<span class="supporter${HONOR_PLANS.includes(r["プラン"]) ? " honor" : ""}">${esc(r["表示する名前"])}</span>`
+  ).join("");
+}
+
+// ===== みんなの旅マップ =====
+// Googleドライブの共有リンクは、画像として表示できるURLに変える
+function imageUrl(u) {
+  const url = safeUrl(u);
+  const m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=)([\w-]+)/);
+  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w600` : url;
+}
+
+// 緯度・経度が空の行は、場所の名前から位置を探す（結果はこのブラウザに保存して、次からは探さない）
+async function geocode(place) {
+  const key = "geo:" + place;
+  try { const hit = localStorage.getItem(key); if (hit) return JSON.parse(hit); } catch (e) {}
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ja&q=${encodeURIComponent(place)}`);
+  const [first] = await res.json();
+  if (!first) return null;
+  const pos = [Number(first.lat), Number(first.lon)];
+  try { localStorage.setItem(key, JSON.stringify(pos)); } catch (e) {}
+  return pos;
+}
+
+async function initMap() {
+  if (!window.L) { $("mapEmpty").textContent = "地図を読み込めませんでした。"; $("mapEmpty").style.display = "block"; return; }
+  const map = L.map("travelMap", { scrollWheelZoom: false }).setView([25, 135], 2);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 18, attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  let rows;
+  try { rows = (await loadTab("旅マップ")).filter(r => r["場所"] && /[〇○◯]/.test(r["掲載"] || "")); }
+  catch (e) { console.error(e); $("mapEmpty").textContent = LOAD_ERROR; $("mapEmpty").style.display = "block"; return; }
+
+  const points = [];
+  for (const r of rows) {
+    let pos = [Number(r["緯度"]), Number(r["経度"])];
+    if (!r["緯度"] || !r["経度"] || pos.some(Number.isNaN)) {
+      try { pos = await geocode(r["場所"].replace(/（例）/g, "")); } catch (e) { pos = null; }
+      await new Promise(res => setTimeout(res, 1000)); // 位置検索は1秒に1回まで
+    }
+    if (!pos) continue;
+    const photo = imageUrl(r["写真のURL"]);
+    L.marker(pos).addTo(map).bindPopup(`
+      <div class="map-pop">
+        <b>${esc(r["場所"])}</b>
+        ${photo ? `<img src="${esc(photo)}" alt="">` : ""}
+        ${r["ひとこと"] ? `<p>${esc(r["ひとこと"])}</p>` : ""}
+        <div class="by">${esc([r["投稿した人"], r["日付"]].filter(Boolean).join("・"))}</div>
+      </div>`);
+    points.push(pos);
+  }
+  if (points.length) map.fitBounds(points, { padding: [40, 40], maxZoom: 6 });
+  $("mapCount").textContent = points.length ? `${points.length}か所の思い出` : "最初の投稿をお待ちしています";
+}
+
+// ===== フォームへのボタン =====
+function linkButton(id, url, pendingLabel) {
+  const el = $(id);
+  if (url) {
+    el.href = url; el.target = "_blank"; el.rel = "noopener";
+  } else {
+    el.textContent = pendingLabel;
+    el.removeAttribute("href");
+    el.style.opacity = ".55";
+    el.style.cursor = "default";
+  }
+}
+linkButton("joinButtonOther", safeUrl(CONFIG.FORM_URL_OTHER), "OBOG・応援の方：準備中");
+linkButton("joinButtonStudent", safeUrl(CONFIG.FORM_URL_STUDENT), "現役メンバー：準備中");
+linkButton("supportButton", safeUrl(CONFIG.SUPPORT_FORM_URL), "応援しましたフォームは準備中です");
+linkButton("mapButton", safeUrl(CONFIG.MAP_FORM_URL), "投稿フォームは準備中です");
+
+initDirectory();
+initArticles();
+initEvents();
+initNews();
+initSupporters();
+initMap();
+</script>
+</body>
+</html>
