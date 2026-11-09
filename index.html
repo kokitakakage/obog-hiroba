@@ -613,7 +613,7 @@ const CONFIG = {
     type: "普通",                // 口座種別
     number: "",                  // 口座番号
     holder: "", holderKana: "",  // 口座名義、カナ
-    paypayId: ""                 // PayPay ID（使わないなら空）
+    paypayOnRequest: true        // PayPayは希望者に運営から個別にIDを伝える
   }
 };
 
@@ -1021,23 +1021,21 @@ $("logoutBtn").addEventListener("click", logout);
 function renderPayment() {
   const p = CONFIG.PAYMENT || {};
   const hasBank = p.bank && p.number && p.holder;
-  if (!hasBank && !p.paypayId) return;
+  if (!hasBank) return;
   const copyBtn = text => `<button class="copy" type="button" data-copy="${esc(text)}">コピー</button>`;
   $("payNote").textContent = "下の振込先にお振り込みください";
   $("payBox").innerHTML = `
     <h4>お振り込み先</h4>
     <dl>
-      ${hasBank ? `
       <dt>銀行名</dt><dd>${esc(p.bank)}${p.bankCode ? `（金融機関コード ${esc(p.bankCode)}）` : ""}</dd>
       <dt>支店名</dt><dd>${esc(p.branch)}${p.branchCode ? `（支店番号 ${esc(p.branchCode)}）` : ""}</dd>
       <dt>口座種別</dt><dd>${esc(p.type || "普通")}</dd>
       <dt>口座番号</dt><dd>${esc(p.number)}${copyBtn(p.number)}</dd>
-      <dt>口座名義</dt><dd>${esc(p.holder)}${p.holderKana ? `<br>（${esc(p.holderKana)}）` : ""}</dd>` : ""}
-      ${p.paypayId ? `<dt>PayPay</dt><dd>ID：${esc(p.paypayId)}${copyBtn(p.paypayId)}</dd>` : ""}
+      <dt>口座名義</dt><dd>${esc(p.holder)}${p.holderKana ? `<br>（${esc(p.holderKana)}）` : ""}</dd>
     </dl>
     <ul>
-      ${hasBank ? "<li>振込手数料は、恐れ入りますがご負担をお願いします。</li>" : ""}
-      ${p.paypayId ? "<li>PayPayで送るときは、メッセージに「OBOGひろば」と入れてください。</li>" : ""}
+      <li>振込手数料は、恐れ入りますがご負担をお願いします。</li>
+      ${p.paypayOnRequest ? "<li>PayPayをご希望の方は、「応援しました」フォームの「応援の方法」で「PayPay」を選んで送ってください。運営からPayPayのIDを個別にお伝えします。</li>" : ""}
       <li>お振り込みのあと、「応援しました」フォームで名義と日付を教えてください。確認でき次第、お返しと活動報告をお届けします。</li>
       <li>領収書が必要な方は、フォームのひとこと欄でお知らせください。</li>
     </ul>`;
