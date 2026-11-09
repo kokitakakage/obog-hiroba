@@ -715,7 +715,7 @@ function toPerson(r) {
 
 // 連絡先：@で始まればInstagram、メールアドレスはメール、URLはそのままリンクにする
 function contactHtml(c) {
-  const v = String(c || "").trim();
+  const v = String(c || "").trim().replace(/^＠/, "@"); // 全角の＠で書かれていても Instagram として扱う
   if (!v) return "";
   if (/^@[A-Za-z0-9._]{1,30}$/.test(v)) return `<a href="https://www.instagram.com/${esc(v.slice(1))}/" target="_blank" rel="noopener">Instagram ${esc(v)}</a>`;
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return `<a href="mailto:${esc(v)}">${esc(v)}</a>`;
