@@ -593,12 +593,10 @@ const CONFIG = {
   // 参加アンケートのURL。空なら受付係が作ったフォームのURLを自動で使う
   FORM_URL_OTHER: "",    // OBOG・応援してくださる方など（みなさん共通）
   FORM_URL_STUDENT: "",  // 学生支部の現役メンバー専用
-  // 「この人に話を聞きたい」を運営に送るフォームのURL。空のあいだは名簿にボタンが出ない
-  CONSULT_FORM_URL: "",
-  // 「応援しました」を知らせるフォームのURL。空のあいだはボタンが「準備中」になる
-  SUPPORT_FORM_URL: "",
-  // 旅マップに投稿するフォームのURL。空のあいだはボタンが「準備中」になる
-  MAP_FORM_URL: ""
+  // 下の3つも、空なら受付係が作ったフォームのURLを自動で使う
+  CONSULT_FORM_URL: "",  // 「この人に話を聞きたい」
+  SUPPORT_FORM_URL: "",  // 「応援しました」
+  MAP_FORM_URL: ""       // 旅マップに投稿する
 };
 
 // 「旅の恩人」以上は名誉隊員
@@ -683,7 +681,8 @@ function setMember(name) {
 
 // ===== いま何してる名簿 =====
 let people = [];
-const consultUrl = safeUrl(CONFIG.CONSULT_FORM_URL);
+// 受付係から届くURLには、相手の名前を入れる場所（__NAME__）が入っている
+let consultUrl = safeUrl(CONFIG.CONSULT_FORM_URL);
 
 function toPerson(r) {
   return {
@@ -738,7 +737,7 @@ function render() {
       </div>` : ""}
       <div class="chips">${[p.industry, ...p.topics].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join("")}</div>
       ${p.consult === "OK" ? '<span class="badge-ok">現役からの相談OK</span>' : ""}
-      ${consultUrl && p.consult && p.consult !== "今は難しい" ? `<a class="consult-link" href="${esc(consultUrl)}" target="_blank" rel="noopener">この人に話を聞きたい →</a>` : ""}
+      ${consultUrl && p.consult && p.consult !== "今は難しい" ? `<a class="consult-link" href="${esc(consultUrl.replace("__NAME__", encodeURIComponent(p.name)))}" target="_blank" rel="noopener">この人に話を聞きたい →</a>` : ""}
     </div>`).join("");
   $("count").textContent = `${list.length}人`;
   $("empty").textContent = "条件に合う人が見つかりませんでした。";
@@ -893,7 +892,9 @@ async function renderMap(rows) {
 // ===== フォームへのボタン =====
 function linkButton(id, url, pendingLabel) {
   const el = $(id);
+  if (!el.dataset.label) el.dataset.label = el.textContent;
   if (url) {
+    el.textContent = el.dataset.label;
     el.href = url; el.target = "_blank"; el.rel = "noopener";
     el.style.opacity = ""; el.style.cursor = "";
   } else {
@@ -920,6 +921,10 @@ async function loadPublic() {
   const forms = data.forms || {};
   linkButton("joinButtonOther", safeUrl(CONFIG.FORM_URL_OTHER || forms.other), "OBOG・応援の方：準備中");
   linkButton("joinButtonStudent", safeUrl(CONFIG.FORM_URL_STUDENT || forms.student), "現役メンバー：準備中");
+  linkButton("supportButton", safeUrl(CONFIG.SUPPORT_FORM_URL || forms.support), "応援しましたフォームは準備中です");
+  linkButton("mapButton", safeUrl(CONFIG.MAP_FORM_URL || forms.map), "投稿フォームは準備中です");
+  consultUrl = safeUrl(CONFIG.CONSULT_FORM_URL || forms.consult);
+  if (people.length) render();
 }
 
 // ===== メンバー専用の部分 =====
@@ -993,9 +998,6 @@ $("verifyBtn").addEventListener("click", verify);
 $("loginCode").addEventListener("keydown", e => { if (e.key === "Enter") verify(); });
 $("backBtn").addEventListener("click", () => { $("loginStep1").hidden = false; $("loginStep2").hidden = true; loginMsg(""); });
 $("logoutBtn").addEventListener("click", logout);
-
-linkButton("supportButton", safeUrl(CONFIG.SUPPORT_FORM_URL), "応援しましたフォームは準備中です");
-linkButton("mapButton", safeUrl(CONFIG.MAP_FORM_URL), "投稿フォームは準備中です");
 
 setMember("");
 loadPublic();
