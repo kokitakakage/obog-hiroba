@@ -271,6 +271,14 @@ section.block { padding: 56px 0; border-top: 1px solid var(--line); }
 .flow li::before { content: counter(step); width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 13px; }
 .flow li span { color: var(--muted); display: block; font-size: 13px; }
 .support-note { font-size: 13.5px; color: var(--muted); margin: 14px 0 0; }
+.pay-box { margin-top: 16px; border: 1px dashed var(--accent); border-radius: 12px; padding: 14px 16px; font-size: 14px; }
+.pay-box[hidden] { display: none; }
+.pay-box h4 { margin: 0 0 8px; font-size: 14px; color: var(--accent); }
+.pay-box dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+.pay-box dt { color: var(--muted); white-space: nowrap; }
+.pay-box dd { margin: 0; font-weight: 700; word-break: break-all; }
+.pay-box .copy { font: inherit; font-size: 12px; margin-left: 8px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
+.pay-box ul { margin: 10px 0 0; padding-left: 1.1em; color: var(--muted); font-size: 13px; }
 
 /* メンバー専用エリア */
 body:not(.is-member) .members-only { display: none; }
@@ -550,10 +558,11 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
           <h3>応援の流れ</h3>
           <ol class="flow">
             <li><div>プランを選ぶ</div></li>
-            <li><div>振り込む<span>振込先は準備中です</span></div></li>
+            <li><div>振り込む<span id="payNote">振込先は準備中です</span></div></li>
             <li><div>「応援しました」フォームで知らせる<span>お名前の載せ方や、お返しの受け取り方をうかがいます</span></div></li>
             <li><div>お返しと活動報告が届く</div></li>
           </ol>
+          <div class="pay-box" id="payBox" hidden></div>
           <a class="btn btn-primary" id="supportButton" href="#" style="margin-top:16px">応援しましたフォーム</a>
         </div>
         <div class="panel">
@@ -596,7 +605,16 @@ const CONFIG = {
   // 下の3つも、空なら受付係が作ったフォームのURLを自動で使う
   CONSULT_FORM_URL: "",  // 「この人に話を聞きたい」
   SUPPORT_FORM_URL: "",  // 「応援しました」
-  MAP_FORM_URL: ""       // 旅マップに投稿する
+  MAP_FORM_URL: "",      // 旅マップに投稿する
+  // 応援金の振込先（団体名義）。口座番号が空のあいだは「振込先は準備中です」と出る
+  PAYMENT: {
+    bank: "", bankCode: "",      // 銀行名、金融機関コード（4桁）
+    branch: "", branchCode: "",  // 支店名、支店番号（3桁）
+    type: "普通",                // 口座種別
+    number: "",                  // 口座番号
+    holder: "", holderKana: "",  // 口座名義、カナ
+    paypayId: ""                 // PayPay ID（使わないなら空）
+  }
 };
 
 // 「旅の恩人」以上は名誉隊員
@@ -999,6 +1017,39 @@ $("loginCode").addEventListener("keydown", e => { if (e.key === "Enter") verify(
 $("backBtn").addEventListener("click", () => { $("loginStep1").hidden = false; $("loginStep2").hidden = true; loginMsg(""); });
 $("logoutBtn").addEventListener("click", logout);
 
+// ===== 振込先 =====
+function renderPayment() {
+  const p = CONFIG.PAYMENT || {};
+  const hasBank = p.bank && p.number && p.holder;
+  if (!hasBank && !p.paypayId) return;
+  const copyBtn = text => `<button class="copy" type="button" data-copy="${esc(text)}">コピー</button>`;
+  $("payNote").textContent = "下の振込先にお振り込みください";
+  $("payBox").innerHTML = `
+    <h4>お振り込み先</h4>
+    <dl>
+      ${hasBank ? `
+      <dt>銀行名</dt><dd>${esc(p.bank)}${p.bankCode ? `（金融機関コード ${esc(p.bankCode)}）` : ""}</dd>
+      <dt>支店名</dt><dd>${esc(p.branch)}${p.branchCode ? `（支店番号 ${esc(p.branchCode)}）` : ""}</dd>
+      <dt>口座種別</dt><dd>${esc(p.type || "普通")}</dd>
+      <dt>口座番号</dt><dd>${esc(p.number)}${copyBtn(p.number)}</dd>
+      <dt>口座名義</dt><dd>${esc(p.holder)}${p.holderKana ? `<br>（${esc(p.holderKana)}）` : ""}</dd>` : ""}
+      ${p.paypayId ? `<dt>PayPay</dt><dd>ID：${esc(p.paypayId)}${copyBtn(p.paypayId)}</dd>` : ""}
+    </dl>
+    <ul>
+      ${hasBank ? "<li>振込手数料は、恐れ入りますがご負担をお願いします。</li>" : ""}
+      ${p.paypayId ? "<li>PayPayで送るときは、メッセージに「OBOGひろば」と入れてください。</li>" : ""}
+      <li>お振り込みのあと、「応援しました」フォームで名義と日付を教えてください。確認でき次第、お返しと活動報告をお届けします。</li>
+      <li>領収書が必要な方は、フォームのひとこと欄でお知らせください。</li>
+    </ul>`;
+  $("payBox").hidden = false;
+  $("payBox").querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "コピーしました"; }
+    catch (e) { b.textContent = "コピーできませんでした"; }
+    setTimeout(() => { b.textContent = "コピー"; }, 1500);
+  }));
+}
+
+renderPayment();
 setMember("");
 loadPublic();
 loadMember();
