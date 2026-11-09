@@ -272,6 +272,25 @@ section.block { padding: 56px 0; border-top: 1px solid var(--line); }
 .flow li span { color: var(--muted); display: block; font-size: 13px; }
 .support-note { font-size: 13.5px; color: var(--muted); margin: 14px 0 0; }
 
+/* メンバー専用エリア */
+body:not(.is-member) .members-only { display: none; }
+body.is-member #members { display: none; }
+.login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 28px; max-width: 680px; }
+.login-card h2 { font-size: clamp(22px, 4vw, 28px); margin-top: 4px; }
+.login-card p { color: var(--muted); margin: 8px 0 0; }
+.login-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.login-row[hidden] { display: none; }
+.login-row input { flex: 1 1 220px; min-width: 0; font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+.login-row input#loginCode { letter-spacing: .3em; font-weight: 700; }
+.login-msg { font-size: 13.5px; min-height: 1.5em; }
+.login-msg.err { color: #c0392b; }
+.link-btn { font: inherit; font-size: 13px; background: none; border: none; color: var(--sea); text-decoration: underline; cursor: pointer; padding: 0; }
+.member-bar { background: var(--sea-soft); color: var(--sea); font-size: 13px; display: none; }
+body.is-member .member-bar { display: block; }
+.member-bar .wrap { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding-top: 6px; padding-bottom: 6px; }
+.locked-note { font-size: 13.5px; color: var(--muted); }
+body.is-member .locked-note { display: none; }
+
 footer { padding: 40px 0 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 </style>
@@ -293,6 +312,12 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
     <a class="btn btn-primary btn-sm" href="#join">参加する（無料）</a>
   </div>
 </header>
+<div class="member-bar">
+  <div class="wrap">
+    <span>ログイン中：<b id="memberName"></b> さん</span>
+    <button class="link-btn" id="logoutBtn" type="button">ログアウト</button>
+  </div>
+</div>
 
 <main id="top">
   <section class="hero">
@@ -302,7 +327,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
       <p class="lead">一緒に1年を走り抜けた仲間が、今どこで何をしているのか。OBOG同士、そして現役生とまたつながれる場所をつくりました。</p>
       <div class="actions">
         <a class="btn btn-primary" href="#join">無料で参加する</a>
-        <a class="btn btn-ghost" href="#directory">名簿をのぞいてみる</a>
+        <a class="btn btn-ghost" href="#members">メンバーはこちら（ログイン）</a>
       </div>
       <div class="hero-stats">
         <div><b>10年</b><span>続いてきたコミュニティ</span></div>
@@ -338,7 +363,30 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
     </div>
   </section>
 
-  <section class="block" id="directory">
+  <section class="block" id="members">
+    <div class="wrap">
+      <div class="login-card">
+        <div class="sec-head" style="margin:0">
+          <div class="tag">MEMBERS</div>
+          <h2>メンバー専用エリア</h2>
+          <p>いま何してる名簿・学生支部ニュース・旅マップ・応援者一覧は、参加が承認されたメンバーだけが見られます。登録したメールアドレスに届くコードでログインしてください。</p>
+        </div>
+        <div id="loginStep1" class="login-row">
+          <input type="email" id="loginEmail" placeholder="登録したメールアドレス" autocomplete="email">
+          <button class="btn btn-primary" id="sendCodeBtn" type="button">コードを送る</button>
+        </div>
+        <div id="loginStep2" class="login-row" hidden>
+          <input type="text" id="loginCode" placeholder="6桁のコード" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+          <button class="btn btn-primary" id="verifyBtn" type="button">ログイン</button>
+          <button class="link-btn" id="backBtn" type="button">メールアドレスを入れ直す</button>
+        </div>
+        <p class="login-msg" id="loginMsg"></p>
+        <p class="support-note">まだ参加していない方は、<a href="#join">参加アンケート</a>からどうぞ。運営が承認すると、メールでお知らせします。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block members-only" id="directory">
     <div class="wrap">
       <div class="sec-head">
         <div class="tag">DIRECTORY</div>
@@ -375,7 +423,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
     </div>
   </section>
 
-  <section class="block" id="students">
+  <section class="block members-only" id="students">
     <div class="wrap">
       <div class="sec-head">
         <div class="tag">NEWS</div>
@@ -412,7 +460,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
     </div>
   </section>
 
-  <section class="block" id="map">
+  <section class="block members-only" id="map">
     <div class="wrap">
       <div class="sec-head">
         <div class="tag">TRAVEL MAP</div>
@@ -433,7 +481,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
       <div class="join">
         <div>
           <h2>参加は無料です</h2>
-          <p>かんたんなアンケートに答えると、OBOGひろばに参加できます。名簿にどこまで載せるかも、ここで選べます。</p>
+          <p>かんたんなアンケートに答えて運営が承認すると、メンバー専用エリアが見られるようになります。名簿にどこまで載せるかも、アンケートで選べます。</p>
           <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap">
             <a class="btn btn-primary" id="joinButtonOther" href="#">OBOG・応援してくださる方</a>
             <a class="btn btn-ghost" id="joinButtonStudent" href="#">学生支部の現役メンバー</a>
@@ -441,8 +489,8 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
           <p class="support-note">OBOG・応援してくださる方は、学生支部の現役かOBOGからの紹介でご参加ください。なりすましを防ぐため、紹介者に確認してから名簿に載せます。</p>
         </div>
         <div class="levels">
-          <div class="level"><b>サイトに公開する</b><span>名前、代・支部、業界、いましていること、相談に乗れること、住んでいる地域（公開してよい項目だけを選べます）</span></div>
-          <div class="level"><b>公開しない</b><span>連絡先（運営からの連絡だけに使います）</span></div>
+          <div class="level"><b>メンバーに公開する</b><span>名前、代・支部、業界、いましていること、学校名、会社名、連絡先など（公開してよい項目だけを選べます）。名簿は承認されたメンバーだけが見られます</span></div>
+          <div class="level"><b>公開しない</b><span>登録したメールアドレス（運営からの連絡とログインだけに使います）</span></div>
         </div>
       </div>
     </div>
@@ -520,8 +568,11 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
       </div>
       <div class="panel" style="margin-top:16px">
         <h3>応援してくれたみなさん</h3>
-        <div class="supporters" id="supporters"></div>
-        <div class="empty" id="supportersEmpty"></div>
+        <p class="locked-note">応援者一覧は、<a href="#members">メンバー専用エリア</a>にログインすると見られます。</p>
+        <div class="members-only">
+          <div class="supporters" id="supporters"></div>
+          <div class="empty" id="supportersEmpty"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -537,9 +588,9 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 <script>
 // ===== 設定（ここだけ書き換える） =====
 const CONFIG = {
-  // 「OBOGひろば サイトデータ」スプレッドシートのID（URLの /d/ と /edit の間）
-  SHEET_ID: "1Qyyp-SJ0ljqbGYIPwEwu70WnVFobrY16NeWEQ1J0YT8",
-  // 参加アンケート（Googleフォーム）のURL。空のあいだはボタンが「準備中」になる
+  // 受付係（Google Apps Script のウェブアプリ）のURL。データとログインはすべてここを通る
+  API_URL: "https://script.google.com/macros/s/AKfycbwVx_f2wh9eTloXwOSL2ZrEf8Gn3Jx3xodecWyl3SnmE6SH-V54AAPr0hQRHlAV3asO/exec",
+  // 参加アンケートのURL。空なら受付係が作ったフォームのURLを自動で使う
   FORM_URL_OTHER: "",    // OBOG・応援してくださる方など（みなさん共通）
   FORM_URL_STUDENT: "",  // 学生支部の現役メンバー専用
   // 「この人に話を聞きたい」を運営に送るフォームのURL。空のあいだは名簿にボタンが出ない
@@ -553,33 +604,25 @@ const CONFIG = {
 // 「旅の恩人」以上は名誉隊員
 const HONOR_PLANS = ["旅の恩人", "特別応援", "企業さま向け"];
 
-// URLの末尾に ?demo をつけると、スプシを読まずに見本データで表示する
+// URLの末尾に ?demo をつけると、受付係を使わずに見本データで表示する（ログインもコード 123456 で試せる）
+const DEMO = new URLSearchParams(location.search).has("demo");
 const SAMPLE = {
-  "公開名簿": [
+  roster: [
     { "名前": "鷹影 昂生", "代（年度）": "2025年度〜（現役）", "支部": "福岡支部", "業界": "飲食", "いましていること": "大学を休学して、ガーナの飲食店スタートアップでインターンをしています", "相談に乗れること": "休学、海外インターン、アフリカ", "現役からの相談": "OK", "住んでいる地域": "海外（ガーナ）", "区分": "現役", "学校名": "立命館アジア太平洋大学（休学中）", "会社名": "", "連絡先（SNS・メールなど）": "" },
-    { "名前": "旅野 さくら（例）", "代（年度）": "2019年度", "支部": "東京支部", "業界": "IT・Web", "いましていること": "Web制作会社でディレクターをしています", "相談に乗れること": "就活、IT業界", "現役からの相談": "OK", "住んでいる地域": "東京都", "区分": "OBOG", "連絡先（SNS・メールなど）": "@tabino_sakura_example" },
-    { "名前": "北浜 ゆうと（例）", "代（年度）": "2018年度", "支部": "大阪支部", "業界": "旅行・観光", "いましていること": "旅行会社で地域ツアーを企画しています", "相談に乗れること": "観光業、地方創生", "現役からの相談": "OK", "住んでいる地域": "大阪府" },
-    { "名前": "海野 みなみ（例）", "代（年度）": "2021年度", "支部": "福岡支部", "業界": "教育", "いましていること": "高校で英語を教えています", "相談に乗れること": "留学、教員", "現役からの相談": "要相談", "住んでいる地域": "福岡県" }
+    { "名前": "旅野 さくら（例）", "代（年度）": "2019年度", "支部": "東京支部", "業界": "IT・Web", "いましていること": "Web制作会社でディレクターをしています", "相談に乗れること": "就活、IT業界", "現役からの相談": "OK", "住んでいる地域": "東京都", "区分": "OBOG", "連絡先（SNS・メールなど）": "@tabino_sakura_example" }
   ],
-  "記事": [
-    { "種類": "OBOGインタビュー", "タイトル": "支部で覚えた「人を巻き込む力」が、今の仕事の土台になった（例）", "紹介文": "旅行会社で地域ツアーを企画する北浜さん。", "名前・代・支部": "北浜 ゆうと／2018年度 大阪支部", "noteのURL": "", "写真のURL": "" }
+  articles: [],
+  events: [
+    { "いつ": "年1回", "イベント名": "OBOGホームカミング", "説明": "全支部・全世代が集まる再会の日。", "形式": "オフライン", "目立たせる": "〇", "状態": "日程調整中", "申込のURL": "" }
   ],
-  "イベント": [
-    { "いつ": "年1回", "イベント名": "OBOGホームカミング", "説明": "全支部・全世代が集まる再会の日。", "形式": "オフライン", "目立たせる": "〇", "状態": "日程調整中", "申込のURL": "" },
-    { "いつ": "12/10", "イベント名": "業界別トーク", "説明": "同じ業界のOBOGと現役で、30分だけ話す会。", "形式": "オンライン", "目立たせる": "", "状態": "開催予定", "申込のURL": "https://example.com/" }
+  news: [
+    { "日付": "2026/11/04", "タイトル": "ガーナから、福岡支部の活動に参加しています", "本文": "大学を休学してガーナでインターンをしながら、オンラインで学生支部の活動を続けています。", "書いた人": "鷹影 昂生（福岡支部）", "写真のURL": "", "掲載": "〇" }
   ],
-  "ニュース": [
-    { "日付": "2026/11/04", "タイトル": "ガーナから、福岡支部の活動に参加しています", "本文": "大学を休学してガーナでインターンをしながら、オンラインで学生支部の活動を続けています。", "書いた人": "鷹影 昂生（福岡支部）", "写真のURL": "", "掲載": "〇" },
-    { "日付": "2026/10/20", "タイトル": "新メンバー歓迎会をしました（例）", "本文": "東京支部で新メンバーの歓迎会を開きました。", "書いた人": "東京支部", "写真のURL": "", "掲載": "〇" },
-    { "日付": "2026/10/01", "タイトル": "載せない投稿（例）", "本文": "", "書いた人": "", "写真のURL": "", "掲載": "" }
+  map: [
+    { "場所": "ガーナ・アクラ", "緯度": "5.6037", "経度": "-0.187", "投稿した人": "鷹影 昂生（福岡支部）", "ひとこと": "インターンで暮らしている町。", "写真のURL": "", "日付": "2026/11/04", "掲載": "〇" }
   ],
-  "旅マップ": [
-    { "場所": "ガーナ・アクラ", "緯度": "5.6037", "経度": "-0.187", "投稿した人": "鷹影 昂生（福岡支部）", "ひとこと": "インターンで暮らしている町。ジョロフライスがおいしいです。", "写真のURL": "", "日付": "2026/11/04", "掲載": "〇" },
-    { "場所": "京都・嵐山（例）", "緯度": "35.0094", "経度": "135.6668", "投稿した人": "北浜 ゆうと（例）", "ひとこと": "支部の合宿で行った思い出の場所。", "写真のURL": "", "日付": "2026/10/15", "掲載": "〇" }
-  ],
-  "応援者": [
-    { "表示する名前": "たびすき太郎（例）", "プラン": "旅の恩人", "表示": "〇" },
-    { "表示する名前": "さくら（例）", "プラン": "旅の相棒", "表示": "〇" }
+  supporters: [
+    { "表示する名前": "たびすき太郎（例）", "プラン": "旅の恩人", "表示": "〇" }
   ]
 };
 
@@ -592,41 +635,51 @@ function esc(s) {
 function safeUrl(u) {
   return /^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "";
 }
+function showEmpty(id, text) { $(id).textContent = text; $(id).style.display = "block"; }
+function hideEmpty(id) { $(id).style.display = "none"; }
 
-function parseCsv(text) {
-  const rows = []; let row = [], cell = "", inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
-      else if (c === '"') inQuotes = false;
-      else cell += c;
-    } else if (c === '"') inQuotes = true;
-    else if (c === ",") { row.push(cell); cell = ""; }
-    else if (c === "\n" || c === "\r") {
-      if (c === "\r" && text[i + 1] === "\n") i++;
-      row.push(cell); rows.push(row); row = []; cell = "";
-    } else cell += c;
-  }
-  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
-  const [head = [], ...body] = rows;
-  const keys = head.map(h => h.trim());
-  return body
-    .filter(r => r.some(v => v.trim() !== ""))
-    .map(r => Object.fromEntries(keys.map((k, i) => [k, (r[i] || "").trim()])));
+// ===== 受付係とのやりとり =====
+async function api(action, payload = {}) {
+  if (DEMO) return demoApi(action, payload);
+  if (!CONFIG.API_URL) return { ok: false, error: "not_ready" };
+  // Content-Type を付けない（text/plain）ことで、ブラウザの事前確認なしで送れる
+  const res = await fetch(CONFIG.API_URL, { method: "POST", body: JSON.stringify({ action, ...payload }) });
+  return res.json();
 }
 
-async function loadTab(name) {
-  if (new URLSearchParams(location.search).has("demo")) return SAMPLE[name] || [];
-  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text = await res.text();
-  if (text.trim().startsWith("<")) throw new Error("スプシが公開されていません");
-  return parseCsv(text);
+function demoApi(action, p) {
+  if (action === "public") return { ok: true, events: SAMPLE.events, articles: SAMPLE.articles, memberCount: SAMPLE.roster.length, forms: {} };
+  if (action === "requestCode") return { ok: true };
+  if (action === "verify") return p.code === "123456" ? { ok: true, token: "demo", name: "お試し" } : { ok: false, error: "wrong_code" };
+  if (action === "member") return p.token === "demo" ? { ok: true, name: "お試し", roster: SAMPLE.roster, news: SAMPLE.news, map: SAMPLE.map, supporters: SAMPLE.supporters } : { ok: false, error: "not_logged_in" };
+  return { ok: true };
 }
 
-const LOAD_ERROR = "読み込めませんでした。スプレッドシートの共有設定（リンクを知っている全員が閲覧可）を確認してください。";
+const TOKEN_KEY = "obogHirobaToken";
+function getToken() { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; } }
+function setToken(t) { try { localStorage.setItem(TOKEN_KEY, t); } catch (e) {} }
+function clearToken() { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} }
+
+const LOAD_ERROR = "読み込めませんでした。時間をおいて、もう一度開いてください。";
+const ERRORS = {
+  bad_email: "メールアドレスの形を確認してください。",
+  too_many: "回数が多すぎます。30分ほど待ってから、もう一度お試しください。",
+  wrong_code: "コードが違うか、期限が切れています。もう一度コードを送ってください。",
+  not_ready: "ログインの準備中です。もうしばらくお待ちください。",
+  server_error: "うまくいきませんでした。時間をおいて、もう一度お試しください。"
+};
+
+// ===== メンバーかどうかで表示を切り替える =====
+const MEMBER_ANCHORS = ["#directory", "#students", "#map"];
+
+function setMember(name) {
+  document.body.classList.toggle("is-member", !!name);
+  $("memberName").textContent = name || "";
+  document.querySelectorAll("nav.main a").forEach(a => {
+    if (!a.dataset.href) a.dataset.href = a.getAttribute("href");
+    if (MEMBER_ANCHORS.includes(a.dataset.href)) a.setAttribute("href", name ? a.dataset.href : "#members");
+  });
+}
 
 // ===== いま何してる名簿 =====
 let people = [];
@@ -692,30 +745,26 @@ function render() {
   $("empty").style.display = list.length ? "none" : "block";
 }
 
-async function initDirectory() {
-  try {
-    people = (await loadTab("公開名簿")).map(toPerson).filter(p => p.name);
-  } catch (e) {
-    console.error(e);
-    $("count").textContent = "";
-    $("empty").textContent = LOAD_ERROR;
-    $("empty").style.display = "block";
-    return;
-  }
-  $("memberCount").textContent = `${people.length}人`;
+let directoryReady = false;
+function renderDirectory(rows) {
+  people = rows.map(toPerson).filter(p => p.name);
+  const sel = $("industry");
+  [...sel.querySelectorAll("option")].slice(1).forEach(o => o.remove());
   [...new Set(people.map(p => p.industry).filter(Boolean))].forEach(i => {
-    const o = document.createElement("option"); o.textContent = i; $("industry").appendChild(o);
+    const o = document.createElement("option"); o.textContent = i; sel.appendChild(o);
   });
-  ["q", "branch", "industry", "okOnly"].forEach(id => $(id).addEventListener("input", render));
+  if (!directoryReady) {
+    ["q", "branch", "industry", "okOnly"].forEach(id => $(id).addEventListener("input", render));
+    directoryReady = true;
+  }
   render();
 }
 
 // ===== インタビュー記事 =====
-async function initArticles() {
-  let rows;
-  try { rows = (await loadTab("記事")).filter(r => r["タイトル"]); }
-  catch (e) { console.error(e); $("articlesEmpty").textContent = LOAD_ERROR; $("articlesEmpty").style.display = "block"; return; }
-  if (!rows.length) { $("articlesEmpty").textContent = "記事は準備中です。"; $("articlesEmpty").style.display = "block"; return; }
+function renderArticles(rows) {
+  rows = rows.filter(r => r["タイトル"]);
+  if (!rows.length) { $("articles").innerHTML = ""; showEmpty("articlesEmpty", "記事は準備中です。"); return; }
+  hideEmpty("articlesEmpty");
   $("articles").innerHTML = rows.map(r => {
     const note = safeUrl(r["noteのURL"]);
     const photo = safeUrl(r["写真のURL"]);
@@ -734,11 +783,10 @@ async function initArticles() {
 }
 
 // ===== イベント =====
-async function initEvents() {
-  let rows;
-  try { rows = (await loadTab("イベント")).filter(r => r["イベント名"]); }
-  catch (e) { console.error(e); $("eventsEmpty").textContent = LOAD_ERROR; $("eventsEmpty").style.display = "block"; return; }
-  if (!rows.length) { $("eventsEmpty").textContent = "イベントは準備中です。"; $("eventsEmpty").style.display = "block"; return; }
+function renderEvents(rows) {
+  rows = rows.filter(r => r["イベント名"]);
+  if (!rows.length) { $("eventList").innerHTML = ""; showEmpty("eventsEmpty", "イベントは準備中です。"); return; }
+  hideEmpty("eventsEmpty");
   $("eventList").innerHTML = rows.map(r => {
     const status = r["状態"] || "";
     const apply = safeUrl(r["申込のURL"]);
@@ -756,11 +804,10 @@ async function initEvents() {
 }
 
 // ===== 学生支部ニュース =====
-async function initNews() {
-  let rows;
-  try { rows = (await loadTab("ニュース")).filter(r => r["タイトル"] && /[〇○◯]/.test(r["掲載"] || "")); }
-  catch (e) { console.error(e); $("newsEmpty").textContent = LOAD_ERROR; $("newsEmpty").style.display = "block"; return; }
-  if (!rows.length) { $("newsEmpty").textContent = "ニュースは準備中です。"; $("newsEmpty").style.display = "block"; return; }
+function renderNews(rows) {
+  rows = rows.filter(r => r["タイトル"] && /[〇○◯]/.test(r["掲載"] || ""));
+  if (!rows.length) { $("newsList").innerHTML = ""; showEmpty("newsEmpty", "ニュースは準備中です。"); return; }
+  hideEmpty("newsEmpty");
   rows.sort((a, b) => String(b["日付"]).localeCompare(String(a["日付"])));
   $("newsList").innerHTML = rows.map(r => {
     const photo = safeUrl(r["写真のURL"]);
@@ -776,11 +823,10 @@ async function initNews() {
 }
 
 // ===== 応援してくれたみなさん =====
-async function initSupporters() {
-  let rows;
-  try { rows = (await loadTab("応援者")).filter(r => r["表示する名前"] && /[〇○◯]/.test(r["表示"] || "")); }
-  catch (e) { console.error(e); $("supportersEmpty").textContent = LOAD_ERROR; $("supportersEmpty").style.display = "block"; return; }
-  if (!rows.length) { $("supportersEmpty").textContent = "最初の応援をお待ちしています。"; $("supportersEmpty").style.display = "block"; return; }
+function renderSupporters(rows) {
+  rows = rows.filter(r => r["表示する名前"] && /[〇○◯]/.test(r["表示"] || ""));
+  if (!rows.length) { $("supporters").innerHTML = ""; showEmpty("supportersEmpty", "最初の応援をお待ちしています。"); return; }
+  hideEmpty("supportersEmpty");
   // 名誉隊員を先に並べる
   rows.sort((a, b) => HONOR_PLANS.includes(b["プラン"]) - HONOR_PLANS.includes(a["プラン"]));
   $("supporters").innerHTML = rows.map(r =>
@@ -808,17 +854,20 @@ async function geocode(place) {
   return pos;
 }
 
-async function initMap() {
-  if (!window.L) { $("mapEmpty").textContent = "地図を読み込めませんでした。"; $("mapEmpty").style.display = "block"; return; }
-  const map = L.map("travelMap", { scrollWheelZoom: false }).setView([25, 135], 2);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18, attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(map);
-
-  let rows;
-  try { rows = (await loadTab("旅マップ")).filter(r => r["場所"] && /[〇○◯]/.test(r["掲載"] || "")); }
-  catch (e) { console.error(e); $("mapEmpty").textContent = LOAD_ERROR; $("mapEmpty").style.display = "block"; return; }
-
+let travelMap = null, mapLayer = null;
+async function renderMap(rows) {
+  if (!window.L) { showEmpty("mapEmpty", "地図を読み込めませんでした。"); return; }
+  // 地図はメンバー専用エリアが表示されてから作る（隠れたまま作ると大きさが合わない）
+  if (!travelMap) {
+    travelMap = L.map("travelMap", { scrollWheelZoom: false }).setView([25, 135], 2);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18, attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(travelMap);
+    mapLayer = L.layerGroup().addTo(travelMap);
+  }
+  travelMap.invalidateSize();
+  mapLayer.clearLayers();
+  rows = rows.filter(r => r["場所"] && /[〇○◯]/.test(r["掲載"] || ""));
   const points = [];
   for (const r of rows) {
     let pos = [Number(r["緯度"]), Number(r["経度"])];
@@ -828,7 +877,7 @@ async function initMap() {
     }
     if (!pos) continue;
     const photo = imageUrl(r["写真のURL"]);
-    L.marker(pos).addTo(map).bindPopup(`
+    L.marker(pos).addTo(mapLayer).bindPopup(`
       <div class="map-pop">
         <b>${esc(r["場所"])}</b>
         ${photo ? `<img src="${esc(photo)}" alt="">` : ""}
@@ -837,7 +886,7 @@ async function initMap() {
       </div>`);
     points.push(pos);
   }
-  if (points.length) map.fitBounds(points, { padding: [40, 40], maxZoom: 6 });
+  if (points.length) travelMap.fitBounds(points, { padding: [40, 40], maxZoom: 6 });
   $("mapCount").textContent = points.length ? `${points.length}か所の思い出` : "最初の投稿をお待ちしています";
 }
 
@@ -846,6 +895,7 @@ function linkButton(id, url, pendingLabel) {
   const el = $(id);
   if (url) {
     el.href = url; el.target = "_blank"; el.rel = "noopener";
+    el.style.opacity = ""; el.style.cursor = "";
   } else {
     el.textContent = pendingLabel;
     el.removeAttribute("href");
@@ -853,17 +903,103 @@ function linkButton(id, url, pendingLabel) {
     el.style.cursor = "default";
   }
 }
-linkButton("joinButtonOther", safeUrl(CONFIG.FORM_URL_OTHER), "OBOG・応援の方：準備中");
-linkButton("joinButtonStudent", safeUrl(CONFIG.FORM_URL_STUDENT), "現役メンバー：準備中");
+
+// ===== 誰でも見られる部分 =====
+async function loadPublic() {
+  let data;
+  try { data = await api("public"); } catch (e) { data = { ok: false }; }
+  if (!data.ok) {
+    showEmpty("articlesEmpty", data.error === "not_ready" ? "準備中です。" : LOAD_ERROR);
+    showEmpty("eventsEmpty", data.error === "not_ready" ? "準備中です。" : LOAD_ERROR);
+    data = { forms: {} };
+  } else {
+    renderArticles(data.articles || []);
+    renderEvents(data.events || []);
+    $("memberCount").textContent = `${data.memberCount || 0}人`;
+  }
+  const forms = data.forms || {};
+  linkButton("joinButtonOther", safeUrl(CONFIG.FORM_URL_OTHER || forms.other), "OBOG・応援の方：準備中");
+  linkButton("joinButtonStudent", safeUrl(CONFIG.FORM_URL_STUDENT || forms.student), "現役メンバー：準備中");
+}
+
+// ===== メンバー専用の部分 =====
+async function loadMember() {
+  const token = getToken();
+  if (!token) { setMember(""); return; }
+  let data;
+  try { data = await api("member", { token }); } catch (e) { data = { ok: false, error: "server_error" }; }
+  if (!data.ok) {
+    if (data.error === "not_logged_in") clearToken();
+    setMember("");
+    return;
+  }
+  setMember(data.name || "メンバー");
+  renderDirectory(data.roster || []);
+  renderNews(data.news || []);
+  renderSupporters(data.supporters || []);
+  await renderMap(data.map || []);
+}
+
+// ===== ログイン =====
+function loginMsg(text, isErr) {
+  $("loginMsg").textContent = text;
+  $("loginMsg").classList.toggle("err", !!isErr);
+}
+
+async function sendCode() {
+  const email = $("loginEmail").value.trim();
+  if (!email) { loginMsg("メールアドレスを入れてください。", true); return; }
+  $("sendCodeBtn").disabled = true;
+  loginMsg("送っています…");
+  let res;
+  try { res = await api("requestCode", { email }); } catch (e) { res = { ok: false, error: "server_error" }; }
+  $("sendCodeBtn").disabled = false;
+  if (!res.ok) { loginMsg(ERRORS[res.error] || ERRORS.server_error, true); return; }
+  $("loginStep1").hidden = true;
+  $("loginStep2").hidden = false;
+  $("loginCode").focus();
+  loginMsg("承認済みのメールアドレスなら、6桁のコードを送りました。届かない場合は、承認がまだか、アドレスが違うかもしれません。" + (DEMO ? "（お試しでは 123456）" : ""));
+}
+
+async function verify() {
+  const email = $("loginEmail").value.trim();
+  const code = $("loginCode").value.trim();
+  if (!/^\d{6}$/.test(code)) { loginMsg("6桁の数字を入れてください。", true); return; }
+  $("verifyBtn").disabled = true;
+  loginMsg("確認しています…");
+  let res;
+  try { res = await api("verify", { email, code }); } catch (e) { res = { ok: false, error: "server_error" }; }
+  $("verifyBtn").disabled = false;
+  if (!res.ok) { loginMsg(ERRORS[res.error] || ERRORS.server_error, true); return; }
+  setToken(res.token);
+  loginMsg("");
+  $("loginCode").value = "";
+  await loadMember();
+  if (document.body.classList.contains("is-member")) $("directory").scrollIntoView({ behavior: "smooth" });
+}
+
+async function logout() {
+  const token = getToken();
+  clearToken();
+  setMember("");
+  $("loginStep1").hidden = false;
+  $("loginStep2").hidden = true;
+  try { if (token) await api("logout", { token }); } catch (e) {}
+}
+
+$("sendCodeBtn").addEventListener("click", sendCode);
+$("loginEmail").addEventListener("keydown", e => { if (e.key === "Enter") sendCode(); });
+$("verifyBtn").addEventListener("click", verify);
+$("loginCode").addEventListener("keydown", e => { if (e.key === "Enter") verify(); });
+$("backBtn").addEventListener("click", () => { $("loginStep1").hidden = false; $("loginStep2").hidden = true; loginMsg(""); });
+$("logoutBtn").addEventListener("click", logout);
+
 linkButton("supportButton", safeUrl(CONFIG.SUPPORT_FORM_URL), "応援しましたフォームは準備中です");
 linkButton("mapButton", safeUrl(CONFIG.MAP_FORM_URL), "投稿フォームは準備中です");
 
-initDirectory();
-initArticles();
-initEvents();
-initNews();
-initSupporters();
-initMap();
+setMember("");
+loadPublic();
+loadMember();
 </script>
 </body>
 </html>
